@@ -41,3 +41,4 @@ resource "google_bigquery_dataset" "dataset" {
   project    = var.project_id
   location   = "EU"
 }
+
