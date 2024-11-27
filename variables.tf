@@ -1,7 +1,7 @@
 variable "aws_region" {
   description = "AWS region where resources will be created"
   type        = string
-  default     = "us-west-2"
+  default     = "eu-west-3"
 }
 
 variable "project_name" {
@@ -13,7 +13,7 @@ variable "project_name" {
 variable "vpc_cidr" {
   description = "CIDR block for VPC"
   type        = string
-  default     = "10.0.0.0/16"
+  default     = "192.168.0.0/16"
 
   validation {
     condition     = can(cidrhost(var.vpc_cidr, 0))
@@ -24,7 +24,7 @@ variable "vpc_cidr" {
 variable "subnet_cidr" {
   description = "CIDR block for subnet"
   type        = string
-  default     = "10.0.1.0/24"
+  default     = "192.168.1.0/24"
 
   validation {
     condition     = can(cidrhost(var.subnet_cidr, 0))
@@ -35,7 +35,7 @@ variable "subnet_cidr" {
 variable "allowed_ip" {
   description = "IP address/range allowed to connect to instances (CIDR notation)"
   type        = string
-  default     = "0.0.0.0/0"  # Replace with specific IP for better security
+  default     = "192.168.1.0/24"  # Replace with specific IP for better security
 
   validation {
     condition     = can(cidrhost(var.allowed_ip, 0))
@@ -55,21 +55,22 @@ variable "key_name" {
 }
 
 # Instance specific variables
-variable "kali_ami" {
-  description = "Kali Linux AMI ID - Update with latest AMI for production use"
-  type        = string
-  default     = "ami-0b7061ad80874a692"
+# variable "kali_ami" {
+#   description = "Kali Linux AMI ID - Update with latest AMI for production use"
+#   type        = string
+#   default     = "ami-07ee183bb1314209b"
 
-  validation {
-    condition     = length(var.kali_ami) >= 12 && substr(var.kali_ami, 0, 4) == "ami-"
-    error_message = "Must be a valid AMI ID, starting with 'ami-'."
-  }
-}
+#   validation {
+#     condition     = length(var.kali_ami) >= 12 && substr(var.kali_ami, 0, 4) == "ami-"
+#     error_message = "Must be a valid AMI ID, starting with 'ami-'."
+#   }
+# }
+
 
 variable "ubuntu_ami" {
   description = "Ubuntu LTS AMI ID - Update with latest AMI for production use"
   type        = string
-  default     = "ami-0c65adc9a5c1b5d7c"
+  default     = "ami-0e1e4dabd4687bd08"
 
   validation {
     condition     = length(var.ubuntu_ami) >= 12 && substr(var.ubuntu_ami, 0, 4) == "ami-"

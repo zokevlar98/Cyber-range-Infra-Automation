@@ -75,13 +75,13 @@ resource "aws_security_group" "instances" {
     description = "SSH access"
   }
 
-  ingress {
-    from_port   = 3000
-    to_port     = 3000
-    protocol    = "tcp"
-    cidr_blocks = [var.allowed_ip]
-    description = "Juice Shop access"
-  }
+  #ingress {
+  #  from_port   = 3000
+  #  to_port     = 3000
+  #  protocol    = "tcp"
+  #  cidr_blocks = [var.allowed_ip]
+  #  description = "Juice Shop access"
+  #}
 
   ingress {
     from_port   = 0
@@ -114,31 +114,33 @@ locals {
 }
 
 # EC2 Instances
-resource "aws_instance" "kali" {
-  ami           = var.kali_ami
-  instance_type = var.instance_types["kali"]
-  key_name      = var.key_name
+# resource "aws_instance" "kali" {
+#   ami           = var.kali_ami
+#   instance_type = var.instance_types["kali"]
+#   key_name      = var.key_name
 
-  subnet_id                   = aws_subnet.public.id
-  vpc_security_group_ids      = [aws_security_group.instances.id]
-  associate_public_ip_address = true
+#   subnet_id                   = aws_subnet.public.id
+#   vpc_security_group_ids      = [aws_security_group.instances.id]
+#   associate_public_ip_address = true
 
-  root_block_device {
-    volume_size = local.instance_defaults.volume_size
-    volume_type = local.instance_defaults.volume_type
-    encrypted   = local.instance_defaults.encrypted
-  }
+#   root_block_device {
+#     volume_size = local.instance_defaults.volume_size
+#     volume_type = local.instance_defaults.volume_type
+#     encrypted   = local.instance_defaults.encrypted
+#   }
+# }
 
-  metadata_options {
-    http_endpoint = "enabled"
-    http_tokens   = "required"
-  }
 
-  tags = merge(var.common_tags, {
-    Name = "${var.project_name}-kali"
-    Role = "red-team"
-  })
-}
+#  metadata_options {
+#    http_endpoint = "enabled"
+#    http_tokens   = "required"
+#  }
+
+#  tags = merge(var.common_tags, {
+#    Name = "${var.project_name}-kali"
+#    Role = "red-team"
+#  })
+#}
 
 resource "aws_instance" "blue_team" {
   ami           = var.ubuntu_ami
@@ -201,7 +203,7 @@ output "vpc_id" {
 output "instance_ips" {
   description = "Public IPs of the instances"
   value = {
-    kali   = aws_instance.kali.public_ip
+#    kali   = aws_instance.kali.public_ip
     blue   = aws_instance.blue_team.public_ip
     target = aws_instance.target.public_ip
   }

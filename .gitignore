@@ -2,6 +2,7 @@
 **/.terraform/*
 
 #keys
+*.pem
 keys/*
 tfplan
 .terraform.lock.hcl
