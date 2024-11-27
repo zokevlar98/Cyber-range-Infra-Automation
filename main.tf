@@ -2,33 +2,40 @@ provider "aws" {
   region = var.aws_region
 }
 
+# Data source for AZs
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
 # VPC Resources
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
   enable_dns_support   = true
 
-  tags = {
+  tags = merge(var.common_tags, {
     Name = "${var.project_name}-vpc"
-  }
+  })
 }
 
 resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.subnet_cidr
   map_public_ip_on_launch = true
+  availability_zone       = data.aws_availability_zones.available.names[0]
 
-  tags = {
+  tags = merge(var.common_tags, {
     Name = "${var.project_name}-public-subnet"
-  }
+    Type = "public"
+  })
 }
 
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
-  tags = {
+  tags = merge(var.common_tags, {
     Name = "${var.project_name}-igw"
-  }
+  })
 }
 
 resource "aws_route_table" "public" {
@@ -39,9 +46,10 @@ resource "aws_route_table" "public" {
     gateway_id = aws_internet_gateway.main.id
   }
 
-  tags = {
+  tags = merge(var.common_tags, {
     Name = "${var.project_name}-public-rt"
-  }
+    Type = "public"
+  })
 }
 
 resource "aws_route_table_association" "public" {
@@ -51,15 +59,20 @@ resource "aws_route_table_association" "public" {
 
 # Security Group
 resource "aws_security_group" "instances" {
-  name        = "${var.project_name}-sg"
+  name_prefix = "${var.project_name}-sg"
   description = "Security group for cyberrange instances"
   vpc_id      = aws_vpc.main.id
+
+  lifecycle {
+    create_before_destroy = true
+  }
 
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = [var.allowed_ip]
+    description = "SSH access"
   }
 
   ingress {
@@ -71,10 +84,11 @@ resource "aws_security_group" "instances" {
   }
 
   ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = true
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    self        = true
+    description = "Allow all internal traffic"
   }
 
   egress {
@@ -82,6 +96,20 @@ resource "aws_security_group" "instances" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound traffic"
+  }
+
+  tags = merge(var.common_tags, {
+    Name = "${var.project_name}-sg"
+  })
+}
+
+# EC2 Instance Module
+locals {
+  instance_defaults = {
+    volume_size = 30
+    volume_type = "gp3"
+    encrypted   = true
   }
 }
 
@@ -96,15 +124,20 @@ resource "aws_instance" "kali" {
   associate_public_ip_address = true
 
   root_block_device {
-    volume_size = 30
-    volume_type = "gp2"
-    encrypted   = true
+    volume_size = local.instance_defaults.volume_size
+    volume_type = local.instance_defaults.volume_type
+    encrypted   = local.instance_defaults.encrypted
   }
 
-  tags = {
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
+
+  tags = merge(var.common_tags, {
     Name = "${var.project_name}-kali"
     Role = "red-team"
-  }
+  })
 }
 
 resource "aws_instance" "blue_team" {
@@ -117,15 +150,20 @@ resource "aws_instance" "blue_team" {
   associate_public_ip_address = true
 
   root_block_device {
-    volume_size = 30
-    volume_type = "gp2"
-    encrypted   = true
+    volume_size = local.instance_defaults.volume_size
+    volume_type = local.instance_defaults.volume_type
+    encrypted   = local.instance_defaults.encrypted
   }
 
-  tags = {
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
+
+  tags = merge(var.common_tags, {
     Name = "${var.project_name}-blue"
     Role = "blue-team"
-  }
+  })
 }
 
 resource "aws_instance" "target" {
@@ -138,13 +176,33 @@ resource "aws_instance" "target" {
   associate_public_ip_address = true
 
   root_block_device {
-    volume_size = 30
-    volume_type = "gp2"
-    encrypted   = true
+    volume_size = local.instance_defaults.volume_size
+    volume_type = local.instance_defaults.volume_type
+    encrypted   = local.instance_defaults.encrypted
   }
 
-  tags = {
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
+
+  tags = merge(var.common_tags, {
     Name = "${var.project_name}-target"
     Role = "target"
+  })
+}
+
+# Outputs
+output "vpc_id" {
+  description = "ID of the created VPC"
+  value       = aws_vpc.main.id
+}
+
+output "instance_ips" {
+  description = "Public IPs of the instances"
+  value = {
+    kali   = aws_instance.kali.public_ip
+    blue   = aws_instance.blue_team.public_ip
+    target = aws_instance.target.public_ip
   }
 }
