@@ -203,7 +203,7 @@ output "vpc_id" {
 output "instance_ips" {
   description = "Public IPs of the instances"
   value = {
-#    kali   = aws_instance.kali.public_ip
+    #    kali   = aws_instance.kali.public_ip
     blue   = aws_instance.blue_team.public_ip
     target = aws_instance.target.public_ip
   }

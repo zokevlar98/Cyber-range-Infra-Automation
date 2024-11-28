@@ -35,7 +35,7 @@ variable "subnet_cidr" {
 variable "allowed_ip" {
   description = "IP address/range allowed to connect to instances (CIDR notation)"
   type        = string
-  default     = "192.168.1.0/24"  # Replace with specific IP for better security
+  default     = "192.168.1.0/24" # Replace with specific IP for better security
 
   validation {
     condition     = can(cidrhost(var.allowed_ip, 0))
@@ -82,9 +82,9 @@ variable "instance_types" {
   description = "Instance types for different purposes"
   type        = map(string)
   default = {
-    kali    = "t2.micro"
-    blue    = "t2.micro"
-    target  = "t2.micro"
+    kali   = "t2.micro"
+    blue   = "t2.micro"
+    target = "t2.micro"
   }
 
   validation {
