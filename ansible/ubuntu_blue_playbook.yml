@@ -1,0 +1,137 @@
+system_dependencies:
+  - build-essential
+  - python3-pip
+  - python3-dev
+  - git
+  - curl
+  - python3-venv
+  - libssl-dev
+  - libffi-dev
+  - openssh-client
+  - openssh-server
+  - openssl
+  - ufw  # Uncomplicated Firewall for firewall configuration
+  - auditd  # For auditing security-related events
+
+network_monitoring_tools:
+  netdata:
+    install: |
+      sudo apt install -y netdata
+      sudo systemctl enable netdata
+      sudo systemctl start netdata
+  ntopng:
+    install: |
+      sudo apt install -y ntopng
+      sudo systemctl enable ntopng
+      sudo systemctl start ntopng
+  tcpdump:
+    install: sudo apt install -y tcpdump
+  wireshark:
+    install: sudo apt install -y wireshark
+  snort:
+    install: |
+      sudo apt install -y snort
+      sudo systemctl enable snort
+      sudo systemctl start snort
+
+log_management_and_analysis_tools:
+  rsyslog:
+    install: sudo apt install -y rsyslog
+  graylog:
+    install: |
+      sudo apt install -y graylog-server
+      sudo systemctl enable graylog-server
+      sudo systemctl start graylog-server
+  elasticsearch:
+    install: |
+      sudo apt install -y elasticsearch
+      sudo systemctl enable elasticsearch
+      sudo systemctl start elasticsearch
+  filebeat:
+    install: |
+      sudo apt install -y filebeat
+      sudo systemctl enable filebeat
+      sudo systemctl start filebeat
+
+endpoint_detection_and_response_tools:
+  osquery:
+    install: |
+      sudo apt install -y osquery
+      sudo systemctl enable osqueryd
+      sudo systemctl start osqueryd
+  wazuh:
+    install: |
+      sudo apt install -y wazuh-manager wazuh-agent
+      sudo systemctl enable wazuh-manager
+      sudo systemctl start wazuh-manager
+  auditd:
+    install: sudo apt install -y auditd
+  falco:
+    install: |
+      sudo apt install -y falco
+      sudo systemctl enable falco
+      sudo systemctl start falco
+
+incident_response_and_forensics_tools:
+  sleuthkit:
+    install: sudo apt install -y sleuthkit
+  autopsy:
+    install: sudo apt install -y autopsy
+  volatility3:
+    install: |
+      sudo apt install -y python3-pip
+      pip install volatility3
+  the_silver_searcher:
+    install: sudo apt install -y silversearcher-ag
+  timesketch:
+    install: |
+      sudo apt install -y timesketch
+      sudo systemctl enable timesketch
+      sudo systemctl start timesketch
+
+defensive_hardening_tools:
+  apparmor:
+    install: sudo apt install -y apparmor apparmor-utils
+    command: |
+      sudo systemctl enable apparmor
+      sudo systemctl start apparmor
+  fail2ban:
+    install: sudo apt install -y fail2ban
+    command: |
+      sudo systemctl enable fail2ban
+      sudo systemctl start fail2ban
+  lynis:
+    install: sudo apt install -y lynis
+    command: sudo lynis audit system
+
+firewall_and_network_security_tools:
+  ufw:
+    install: sudo apt install -y ufw
+    command: |
+      sudo ufw enable
+      sudo ufw allow ssh
+      sudo ufw allow 80/tcp
+      sudo ufw allow 443/tcp
+  nmap:
+    install: sudo apt install -y nmap
+  iptables:
+    install: sudo apt install -y iptables
+  fail2ban:
+    install: sudo apt install -y fail2ban
+
+security_information_and_event_management (SIEM):
+  ossec:
+    install: |
+      sudo apt install -y ossec-hids
+      sudo systemctl enable ossec
+      sudo systemctl start ossec
+  open_distro_for_elasticsearch:
+    install: |
+      sudo apt install -y opendistroforelasticsearch
+      sudo systemctl enable opendistroforelasticsearch
+      sudo systemctl start opendistroforelasticsearch
+
+updating_tools_and_dependencies:
+  command: |
+    sudo apt update && sudo apt upgrade -y
+    pip list --outdated | awk 'NR>2 {print $1}' | xargs pip install --upgrade

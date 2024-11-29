@@ -1,0 +1,7 @@
+plugin: aws_ec2
+regions:
+  - eu-west-3a  # Your AWS region
+filters:
+  instance-state-name: running  # Only include running instances
+hostnames:
+  - dns-name
