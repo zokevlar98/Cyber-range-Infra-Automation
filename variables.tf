@@ -69,7 +69,7 @@ variable "instance_types" {
   description = "Instance types for different purposes"
   type        = map(string)
   default = {
-    red_team = "t2.micro"
+    red_team  = "t2.micro"
     blue_team = "t2.micro"
     target    = "t2.micro"
   }

@@ -71,7 +71,7 @@ resource "aws_security_group" "instances" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = [var.allowed_ip]
+    cidr_blocks = ["0.0.0.0/0"]
     description = "SSH access"
   }
 
@@ -195,69 +195,72 @@ output "vpc_id" {
 output "instance_ips" {
   description = "Public IPs of the instances"
   value = {
-    red_team = aws_instance.red_team.public_ip
+    red_team  = aws_instance.red_team.public_ip
     blue_team = aws_instance.blue_team.public_ip
-    target   = aws_instance.target.public_ip
+    target    = aws_instance.target.public_ip
   }
 }
-# if the declaration up is not working, try this one
-# resource "aws_subnet" "public" {
-#   vpc_id                  = aws_vpc.main.id
-#   cidr_block              = var.subnet_cidr
-#   map_public_ip_on_launch = true
-#   availability_zone       = aws_region.default
 
-#  tags = {
-#     Name = "Public Subnet of cyber_range"
-#   }
-  
-# }
+output "instance_public_ip" {
+  description = "Public IP of the instance"
+  value = {
+    read_team = aws_instance.red_team.public_ip
+    blue_team = aws_instance.blue_team.public_ip
+    target    = aws_instance.target.public_ip
+  }
+}
 
 resource "aws_lb" "net_lb" {
-  name = "${var.project_name}-net-lb"
-  internal = false
+  name               = "${var.project_name}-net-lb"
+  internal           = false
   load_balancer_type = "network"
-  subnets = [aws_subnet.public.id]
-  ip_address_type = "ipv4"
+  subnets            = [aws_subnet.public.id]
+  ip_address_type    = "ipv4"
 
   enable_deletion_protection = false
 }
 
 resource "aws_lb_target_group" "net_tg" {
-  name = "${var.project_name}-net-tg"
-  port = 22
+  name     = "${var.project_name}-net-tg"
+  port     = 22
   protocol = "TCP"
-  vpc_id = aws_vpc.main.id
+  vpc_id   = aws_vpc.main.id
 
   health_check {
-    interval = 30
-    protocol = "TCP"
-    timeout = 30
-    healthy_threshold = 3
+    interval            = 30
+    protocol            = "TCP"
+    timeout             = 30
+    healthy_threshold   = 3
     unhealthy_threshold = 3
   }
 }
 
 resource "aws_lb_listener" "net_lb_listener" {
   load_balancer_arn = aws_lb.net_lb.arn
-  port = 22
-  protocol = "TCP"
+  port              = 22
+  protocol          = "TCP"
 
   default_action {
-    type = "forward"
+    type             = "forward"
     target_group_arn = aws_lb_target_group.net_tg.arn
   }
 }
 
+resource "aws_lb_target_group_attachment" "red_team" {
+  target_group_arn = aws_lb_target_group.net_tg.arn
+  target_id        = aws_instance.blue_team.id
+  port             = 22
+}
+
 resource "aws_lb_target_group_attachment" "blue_team" {
   target_group_arn = aws_lb_target_group.net_tg.arn
-  target_id = aws_instance.blue_team.id
-  port = 22
+  target_id        = aws_instance.blue_team.id
+  port             = 22
 }
 
 resource "aws_lb_target_group_attachment" "target" {
   target_group_arn = aws_lb_target_group.net_tg.arn
-  target_id = aws_instance.target.id
-  port = 22
+  target_id        = aws_instance.target.id
+  port             = 22
 }
 
