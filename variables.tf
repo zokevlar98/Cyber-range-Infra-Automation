@@ -35,7 +35,7 @@ variable "subnet_cidr" {
 variable "allowed_ip" {
   description = "IP address/range allowed to connect to instances (CIDR notation)"
   type        = string
-  default     = "192.168.1.0/24" # Replace with specific IP for better security
+  default     = "192.168.1.0/24"
 
   validation {
     condition     = can(cidrhost(var.allowed_ip, 0))
@@ -54,21 +54,8 @@ variable "key_name" {
   }
 }
 
-# Instance specific variables
-# variable "kali_ami" {
-#   description = "Kali Linux AMI ID - Update with latest AMI for production use"
-#   type        = string
-#   default     = "ami-07ee183bb1314209b"
-
-#   validation {
-#     condition     = length(var.kali_ami) >= 12 && substr(var.kali_ami, 0, 4) == "ami-"
-#     error_message = "Must be a valid AMI ID, starting with 'ami-'."
-#   }
-# }
-
-
 variable "ubuntu_ami" {
-  description = "Ubuntu LTS AMI ID - Update with latest AMI for production use"
+  description = "Ubuntu LTS AMI ID"
   type        = string
   default     = "ami-0e1e4dabd4687bd08"
 
@@ -82,9 +69,9 @@ variable "instance_types" {
   description = "Instance types for different purposes"
   type        = map(string)
   default = {
-    kali   = "t2.micro"
-    blue   = "t2.micro"
-    target = "t2.micro"
+    red_team = "t2.micro"
+    blue_team = "t2.micro"
+    target    = "t2.micro"
   }
 
   validation {
