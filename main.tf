@@ -130,6 +130,10 @@ resource "aws_instance" "red_team" {
     Name = "${var.project_name}-red"
     Role = "red-team"
   })
+
+  provisioner "local-exec" {
+    command = "ansible-playbook -i '${self.public_ip},' -u ubuntu --private-key ${var.key_name}.pem ${var.red_team_playbook}"
+  }
 }
 
 # Blue Team Instance
@@ -204,7 +208,7 @@ output "instance_ips" {
 output "instance_public_ip" {
   description = "Public IP of the instance"
   value = {
-    read_team = aws_instance.red_team.public_ip
+    red_team  = aws_instance.red_team.public_ip
     blue_team = aws_instance.blue_team.public_ip
     target    = aws_instance.target.public_ip
   }

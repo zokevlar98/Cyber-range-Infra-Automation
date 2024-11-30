@@ -91,3 +91,15 @@ variable "common_tags" {
     ManagedBy = "terraform"
   }
 }
+
+variable "red_team_playbook" {
+  description = "Path to the Red Team playbook"
+  type        = string
+  default     = "/mnt/c/Users/zokevlar/Desktop/Cyber-range-Infra-Automation/ansible/red_team_playbook.yml"
+
+  validation {
+    condition     = can(file(var.red_team_playbook))
+    error_message = "File not found."
+  }
+
+}

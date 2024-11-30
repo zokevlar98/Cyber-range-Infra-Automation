@@ -1,99 +1,106 @@
+---
 - hosts: red_team
   become: true
-  system_dependencies:
-  - build-essential
-  - python3-pip
-  - python3-dev
-  - git
-  - curl
-  - python3-venv
-  - libssl-dev
-  - libffi-dev
-  - openssh-client
-  - openssh-server
-  - openssl
+  tasks:
+    - name: Install system dependencies
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - build-essential
+        - python3-pip
+        - python3-dev
+        - git
+        - curl
+        - python3-venv
+        - libssl-dev
+        - libffi-dev
+        - openssh-client
+        - openssh-server
+        - openssl
 
-networking_and_reconnaissance_tools:
-  nmap:
-    install: sudo apt install -y nmap
-  netcat:
-    install: sudo apt install -y netcat
-  nikto:
-    install: sudo apt install -y nikto
-  amass:
-    install: sudo apt install -y amass
-  gobuster:
-    install: sudo apt install -y gobuster
-  recon-ng:
-    install: sudo apt install -y recon-ng
+    - name: Install networking and reconnaissance tools
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - nmap
+        - netcat
+        - nikto
+        - amass
+        - gobuster
+        - recon-ng
 
-exploitation_and_post_exploitation_tools:
-  metasploit_framework:
-    install: |
-      curl https://raw.githubusercontent.com/rapid7/metasploit-framework/master/msfinstall | sudo bash
-  empire:
-    install: |
-      git clone https://github.com/EmpireProject/Empire.git
-      cd Empire
-      ./setup/install.sh
-  bloodhound:
-    install: |
-      git clone https://github.com/BloodHoundAD/BloodHound.git
-      cd BloodHound
-      npm install
+    - name: Install Metasploit Framework
+      shell: curl https://raw.githubusercontent.com/rapid7/metasploit-framework/master/msfinstall | sudo bash
 
-phishing_and_social_engineering_tools:
-  social_engineering_toolkit:
-    install: sudo apt install -y set
-  kingphisher:
-    install: |
-      git clone https://github.com/securestate/king-phisher.git
-      cd king-phisher
-      python3 setup.py install
-  evilginx2:
-    install: |
-      git clone https://github.com/evilhack/evilginx2.git
-      cd evilginx2
-      ./install.sh
+    - name: Install Empire
+      shell: |
+        git clone https://github.com/EmpireProject/Empire.git
+        cd Empire
+        ./setup/install.sh
 
-privilege_escalation_tools:
-  linpeas:
-    install: |
-      git clone https://github.com/carlospolop/PEASS-ng.git
-      cd PEASS-ng/linPEAS
-      chmod +x linpeas.sh  # Assurez-vous que le script est exécutable
-  gtfo_bins:
-    install: git clone https://github.com/GTFOBins/GTFOBins.github.io.git
-  linux_exploit_suggester:
-    install: git clone https://github.com/mzet-/linux-exploit-suggester.git
+    - name: Install BloodHound
+      shell: |
+        git clone https://github.com/BloodHoundAD/BloodHound.git
+        cd BloodHound
+        npm install
 
-web_application_testing_tools:
-  burp_suite:
-    install: |
-      # Download the free version from https://portswigger.net/burp/communitydownload
-  owasp_zap:
-    install: sudo apt install -y zaproxy
-  sqlmap:
-    install: sudo apt install -y sqlmap
+    - name: Install Social Engineering Toolkit
+      apt:
+        name: set
+        state: present
 
-persistence_tools:
-  covenant:
-    install: |
-      git clone https://github.com/cobbr/Covenant.git
-      cd Covenant
-      dotnet build
-  
-miscellaneous_tools:
-  hashcat:
-    install: sudo apt install -y hashcat
-  john_the_ripper:
-    install: sudo apt install -y john
-  wireshark:
-    install: sudo apt install -y wireshark
-  metaripper:
-    install: sudo apt install -y hashcat
+    - name: Install KingPhisher
+      shell: |
+        git clone https://github.com/securestate/king-phisher.git
+        cd king-phisher
+        python3 setup.py install
 
-updating_tools_and_dependencies:
-  command: |
-    sudo apt update && sudo apt upgrade -y
-    pip list --outdated | awk 'NR>2 {print $1}' | xargs pip install --upgrade
+    - name: Install Evilginx2
+      shell: |
+        git clone https://github.com/evilhack/evilginx2.git
+        cd evilginx2
+        ./install.sh
+
+    - name: Install LinPEAS
+      shell: |
+        git clone https://github.com/carlospolop/PEASS-ng.git
+        cd PEASS-ng/linPEAS
+        chmod +x linpeas.sh
+
+    - name: Install GTFOBins
+      shell: git clone https://github.com/GTFOBins/GTFOBins.github.io.git
+
+    - name: Install Linux Exploit Suggester
+      shell: git clone https://github.com/mzet-/linux-exploit-suggester.git
+
+    - name: Install OWASP ZAP
+      apt:
+        name: zaproxy
+        state: present
+
+    - name: Install SQLMap
+      apt:
+        name: sqlmap
+        state: present
+
+    - name: Install Covenant
+      shell: |
+        git clone https://github.com/cobbr/Covenant.git
+        cd Covenant
+        dotnet build
+
+    - name: Install miscellaneous tools
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - hashcat
+        - john
+        - wireshark
+
+    - name: Update and upgrade system
+      shell: |
+        sudo apt update && sudo apt upgrade -y
+        pip list --outdated | awk 'NR>2 {print $1}' | xargs pip install --upgrade
