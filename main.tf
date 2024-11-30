@@ -80,7 +80,8 @@ resource "aws_security_group" "instances" {
     to_port     = 0
     protocol    = "-1"
     self        = true
-    description = "Allow all internal traffic"
+    description = "Allow all internal traffic" 
+    #VXLAN traffic (UDP 4789) will be allowed by the "Allow all internal traffic" rule.
   }
 
   egress {
@@ -132,6 +133,7 @@ resource "aws_instance" "red_team" {
   })
 
   provisioner "local-exec" {
+    when = create
     command = "ansible-playbook -i '${self.public_ip},' -u ubuntu --private-key ${var.key_name}.pem ${var.red_team_playbook}"
   }
 }
@@ -190,29 +192,7 @@ resource "aws_instance" "target" {
   })
 }
 
-# Outputs
-output "vpc_id" {
-  description = "ID of the created VPC"
-  value       = aws_vpc.main.id
-}
 
-output "instance_ips" {
-  description = "Public IPs of the instances"
-  value = {
-    red_team  = aws_instance.red_team.public_ip
-    blue_team = aws_instance.blue_team.public_ip
-    target    = aws_instance.target.public_ip
-  }
-}
-
-output "instance_public_ip" {
-  description = "Public IP of the instance"
-  value = {
-    red_team  = aws_instance.red_team.public_ip
-    blue_team = aws_instance.blue_team.public_ip
-    target    = aws_instance.target.public_ip
-  }
-}
 
 resource "aws_lb" "net_lb" {
   name               = "${var.project_name}-net-lb"
@@ -268,3 +248,71 @@ resource "aws_lb_target_group_attachment" "target" {
   port             = 22
 }
 
+#traffic mirror target
+resource "aws_ec2_traffic_mirror_target" "blue_team_target" {
+  description          = "Mirror target for blue team analysis"
+  network_interface_id = aws_instance.blue_team.primary_network_interface_id
+  
+  tags = merge(var.common_tags, {
+    Name = "${var.project_name}-mirror-target"
+  })
+}
+#Mirror traffic filter
+resource "aws_ec2_traffic_mirror_filter" "target_traffic" {
+  description      = "Filter for target instance traffic"
+  network_services = ["amazon-dns"]
+
+  tags = merge(var.common_tags, {
+    Name = "${var.project_name}-mirror-filter"
+  })
+}
+
+# Rules for inbound traffic
+resource "aws_ec2_traffic_mirror_filter_rule" "inbound" {
+  description              = "Accept inbound traffic"
+  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.target_traffic.id
+  rule_number             = 1
+  rule_action             = "accept"
+  traffic_direction       = "ingress"
+  destination_cidr_block  = "0.0.0.0/0"
+  source_cidr_block      = "0.0.0.0/0"
+}
+
+# Rules for outbound traffic
+resource "aws_ec2_traffic_mirror_filter_rule" "outbound" {
+  description              = "Accept outbound traffic"
+  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.target_traffic.id
+  rule_number             = 2
+  rule_action             = "accept"
+  traffic_direction       = "egress"
+  destination_cidr_block  = "0.0.0.0/0"
+  source_cidr_block      = "0.0.0.0/0"
+}
+
+# Traffic mirror session
+resource "aws_ec2_traffic_mirror_session" "target_session" {
+  description              = "Traffic mirror session for target instance"
+  network_interface_id     = aws_instance.target.primary_network_interface_id
+  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.target_traffic.id
+  traffic_mirror_target_id = aws_ec2_traffic_mirror_target.blue_team_target.id
+  session_number          = 1
+
+  tags = merge(var.common_tags, {
+    Name = "${var.project_name}-mirror-session"
+  })
+}
+
+# Outputs
+output "vpc_id" {
+  description = "ID of the created VPC"
+  value       = aws_vpc.main.id
+}
+
+output "instance_public_ip" {
+  description = "Public IP of the instance"
+  value = {
+    red_team  = aws_instance.red_team.public_ip
+    blue_team = aws_instance.blue_team.public_ip
+    target    = aws_instance.target.public_ip
+  }
+}
