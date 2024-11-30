@@ -2,6 +2,9 @@
 - hosts: red_team
   become: true
   tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
     - name: Install system dependencies
       apt:
         name: "{{ item }}"
@@ -12,12 +15,20 @@
         - python3-dev
         - git
         - curl
+        - wget
+        - tar
         - python3-venv
         - libssl-dev
         - libffi-dev
         - openssh-client
         - openssh-server
         - openssl
+        - jq
+
+    # - name: Install Node.js and npm
+    #   shell: |
+    #     curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+    #     sudo apt-get install -y nodejs
 
     - name: Install networking and reconnaissance tools
       apt:
@@ -27,12 +38,26 @@
         - nmap
         - netcat
         - nikto
-        - amass
         - gobuster
         - recon-ng
 
+    - name: Install Amass
+      shell: |
+        curl -s https://api.github.com/repos/OWASP/Amass/releases/latest \
+        | grep "browser_download_url.*linux_amd64.zip" \
+        | cut -d : -f 2,3 \
+        | tr -d \" \
+        | wget -qi -
+        unzip amass_linux_amd64.zip
+        sudo mv amass_linux_amd64/amass /usr/local/bin/
+        rm -rf amass_linux_amd64*
+
     - name: Install Metasploit Framework
-      shell: curl https://raw.githubusercontent.com/rapid7/metasploit-framework/master/msfinstall | sudo bash
+      shell: |
+        curl https://raw.githubusercontent.com/rapid7/metasploit-framework/master/msfinstall -o msfinstall
+        chmod +x msfinstall
+        sudo ./msfinstall
+        rm msfinstall
 
     - name: Install Empire
       shell: |
@@ -40,56 +65,63 @@
         cd Empire
         ./setup/install.sh
 
-    - name: Install BloodHound
-      shell: |
-        git clone https://github.com/BloodHoundAD/BloodHound.git
-        cd BloodHound
-        npm install
+    # - name: Install BloodHound
+    #   shell: |
+    #     rm -rf BloodHound
+    #     git clone https://github.com/BloodHoundAD/BloodHound.git
+    #     cd BloodHound
+    #     npm install
 
     - name: Install Social Engineering Toolkit
+      shell: |
+        git clone https://github.com/trustedsec/social-engineer-toolkit.git
+        cd social-engineer-toolkit
+        pip3 install -r requirements.txt
+        python3 setup.py 
+
+    - name: Install Hydra
       apt:
-        name: set
+        name: hydra
         state: present
 
-    - name: Install KingPhisher
-      shell: |
-        git clone https://github.com/securestate/king-phisher.git
-        cd king-phisher
-        python3 setup.py install
+    # - name: Install KingPhisher # he need sudo privileges
+    #   shell: |
+    #     wget -q https://github.com/securestate/king-phisher/raw/master/tools/install.sh && \
+    #       bash ./install.sh
 
-    - name: Install Evilginx2
-      shell: |
-        git clone https://github.com/evilhack/evilginx2.git
-        cd evilginx2
-        ./install.sh
+    # - name: Install Atomic Red Team
+    #   shell: |
+    #     git clone https://github.com/redcanaryco/atomic-red-team.git
+    #     cd atomic-red-team
+    #     sudo ./setup.sh
 
-    - name: Install LinPEAS
-      shell: |
-        git clone https://github.com/carlospolop/PEASS-ng.git
-        cd PEASS-ng/linPEAS
-        chmod +x linpeas.sh
+    # - name: Install LinPEAS
+    #   shell: |
+    #     git clone https://github.com/carlospolop/PEASS-ng.git
+    #     cd PEASS-ng/linPEAS
+    #     chmod +x linpeas.sh
 
-    - name: Install GTFOBins
-      shell: git clone https://github.com/GTFOBins/GTFOBins.github.io.git
+    # - name: Install GTFOBins
+    #   shell: git clone https://github.com/GTFOBins/GTFOBins.github.io.git
 
     - name: Install Linux Exploit Suggester
-      shell: git clone https://github.com/mzet-/linux-exploit-suggester.git
+      shell: wget https://raw.githubusercontent.com/mzet-/linux-exploit-suggester/master/linux-exploit-suggester.sh -O les.sh
 
-    - name: Install OWASP ZAP
-      apt:
-        name: zaproxy
-        state: present
+    # - name: Install OWASP ZAP
+    #   apt:
+    #     name: zaproxy
+    #     state: present
 
     - name: Install SQLMap
       apt:
         name: sqlmap
         state: present
 
-    - name: Install Covenant
-      shell: |
-        git clone https://github.com/cobbr/Covenant.git
-        cd Covenant
-        dotnet build
+    # - name: Install Covenant
+    #   shell: |
+    #     git clone https://github.com/cobbr/Covenant.git
+    #     cd Covenant
+    #     dotnet build
 
     - name: Install miscellaneous tools
       apt:
@@ -103,4 +135,3 @@
     - name: Update and upgrade system
       shell: |
         sudo apt update && sudo apt upgrade -y
-        pip list --outdated | awk 'NR>2 {print $1}' | xargs pip install --upgrade
