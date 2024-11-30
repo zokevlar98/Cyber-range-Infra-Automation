@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Update and upgrade the system
-# sudo apt update && sudo apt upgrade -y
+sudo apt update && sudo apt upgrade -y
 
 # check jq is installed or not
 if ! command -v jq &> /dev/null; then
@@ -69,16 +69,29 @@ echo "Applying Terraform configuration..."
 echo "Constructing the infrastructure..."
 terraform apply tfplan
 
-# Execute Ansible playbooks
-# r = "ansible/red_team_playbook.yml"
-# b = "ansible/blue_team_playbook.yml"
-# t = "ansible/target_playbook.yml"
-sudo ansible-playbook -i $(pwd)/ansible/inventory.ini  $(pwd)/ansible/red_team_playbook.yml
+# get data to inventory.ini
+# terraform output -json instance_public_ip | jq -r '.red_team | "red_team ansible_host=" + . + " ansible_user=ubuntu"' > $(pwd)/ansible/.env 
 
-# # Exécution des playbooks Ansible
-# ansible-playbook -i inventory red_team_playbook.yml
-# ansible-playbook -i inventory bue_team_playbook.yml
-# ansible-playbook -i inventory target_playbook.yml
+# For red_team
+echo "Getting data to inventory.ini..."
+echo "Red_team ip public adress..."
+terraform output -json instance_public_ip | jq -r '.red_team' > $(pwd)/ansible/.env 
+red_team_ip=$(cat $(pwd)/ansible/.env)
+echo "[red_team]" > $(pwd)/ansible/inventory.ini
+echo "${red_team_ip} ansible_user=ubuntu ansible_ssh_private_key_file=$(pwd)/cyberrange-key.pem" >> $(pwd)/ansible/inventory.ini
+
+# For blue_team
+
+# echo "Bleu_team ip public adress..."
+# terraform output -json instance_public_ip | jq -r '.bleu_team' > $(pwd)/ansible/.env 
+# bleu_team_ip=$(cat $(pwd)/ansible/.env)
+# echo "[bleu_team]" >> $(pwd)/ansible/inventory.ini
+# echo "${bleu_team_ip} ansible_user=ubuntu ansible_ssh_private_key_file=$(pwd)/cyberrange-key.pem" >> $(pwd)/ansible/inventory.ini
+
+# Exécution Ansible playbooks
+echo "Executing Ansible playbooks..."
+# sudo ansible-playbook -i $(pwd)/ansible/inventory.ini  $(pwd)/ansible/red_team_playbook.yml -l red_team
+# sudo ansible-playbook -i $(pwd)/ansible/inventory.ini $(pwd)/ansible/blue_team_playbook.yml -l blue_team
 
 # # (Optionnel) Démarrage de Vagrant
 # vagrant up
