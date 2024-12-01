@@ -68,6 +68,14 @@ else
     sudo apt install -y openssh-client
 fi
 
+#check AWS CLI Installation
+if  command -v aws &> /dev/null; then
+    echo "AWS CLI is already installed"
+else
+    echo "AWS CLI not found, installing..."
+    sudo apt install -y awscli
+fi
+
 # Verify OpenSSH client installation
 ssh -V
 
