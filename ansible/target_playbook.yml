@@ -1,0 +1,121 @@
+---
+- hosts: target
+  become: true
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+    - name: Install system dependencies
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - build-essential
+        - python3-pip
+        - python3-dev
+        - git
+        - curl
+        - wget
+        - tar
+        - python3-venv
+        - libssl-dev
+        - libffi-dev
+        - openssh-client
+        - openssh-server
+        - openssl
+        - jq
+
+    #Install Apache and PHP (with an outdated version):
+    - name: Install Apache and PHP (outdated version)
+      apt:
+        name:
+          - apache2
+          # - php7.4
+          # - libapache2-mod-php7.4
+        state: present   
+
+    # - name: Install MySQL server
+    #   apt:
+    #     name: mysql-server
+    #     state: present
+
+    # - name: Configure MySQL with weak password and allow remote login
+    #   shell: |
+    #     echo "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'password123';" | mysql -u root
+    #     sed -i '/^bind-address/s/^/#/' /etc/mysql/mysql.conf.d/mysqld.cnf
+    #     systemctl restart mysql
+    #   args:
+    #     executable: /bin/bash
+
+    # - name: Install Damn Vulnerable Web Application (DVWA)
+    #   shell: |
+    #     wget https://raw.githubusercontent.com/IamCarron/DVWA-Script/main/Install-DVWA.sh
+    #     chmod +x Install-DVWA.sh
+    #     sudo ./Install-DVWA.sh
+    #   notify:
+    #     - Restart Apache
+
+    # - name: Set ownership for DVWA
+    #   file:
+    #     path: /var/www/html/dvwa
+    #     owner: www-data
+    #     group: www-data
+    #     recurse: yes
+
+    - name: Install FTP Server with default configuration
+      apt:
+        name: vsftpd
+        state: present
+
+    - name: Install Samba server
+      apt:
+        name: samba
+        state: present
+
+    - name: Set weak permissions on critical files
+      file:
+        path: /etc/passwd
+        mode: '0777'
+
+    - name: Enable root SSH login
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PermitRootLogin'
+        line: 'PermitRootLogin yes'
+        state: present
+      notify:
+        - Restart SSH
+
+    - name: Disable automatic updates
+      systemd:
+        name: "{{ item }}"
+        enabled: no
+      loop:
+        - apt-daily.service
+        - apt-daily-upgrade.service
+
+    - name: Turn off UFW (firewall)
+      command: ufw disable
+
+    # - name: check instalation and configuration
+    #   git:
+    #     repo: https://github.com/zokevlar98/script_cyber_range.git
+    #     dest: /tmp
+    #     force: yes
+
+    #   shell: |
+    #     cd /tmp/script_cyber_range/target
+    #     chmod 755 check.sh
+    #     sudo ./check.sh
+
+  handlers:
+    - name: Restart Apache
+      service:
+        name: apache2
+        state: restarted
+
+    - name: Restart SSH
+      service:
+        name: ssh
+        state: restarted
+

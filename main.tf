@@ -132,10 +132,10 @@ resource "aws_instance" "red_team" {
     Role = "red-team"
   })
 
-  provisioner "local-exec" {
-    when = create
-    command = "ansible-playbook -i '${self.public_ip},' -u ubuntu --private-key ${var.key_name}.pem ${var.red_team_playbook}"
-  }
+  # provisioner "local-exec" {
+  #   when = create
+  #   command = "ansible-playbook -i '${self.public_ip},' -u ubuntu --private-key ${var.key_name}.pem ${var.red_team_playbook}"
+  # }
   # provisioner "Local-exec" {
   #   command = <<EOF
 
@@ -195,8 +195,6 @@ resource "aws_instance" "target" {
     Role = "target"
   })
 }
-
-
 
 resource "aws_lb" "net_lb" {
   name               = "${var.project_name}-net-lb"

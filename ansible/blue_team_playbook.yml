@@ -119,19 +119,17 @@
         - wireshark
         - snort
 
-    - name: Install log_management_and_analysis_tools
-      apt:
-        name: "{{ item }}"
-        state: present
-      with_items:
-        - rsyslog
-        - graylog-server # here probleme
-        - elasticsearch
-        - filebeat
-        - osquery
-        - wazuh-manager
-        - wazuh-agent
-        - falco
+    # - name: Install log management and analysis tools
+    #   apt:
+    #     name: "{{ item }}"
+    #     state: present
+    #   loop:
+    #     - elasticsearch
+    #     - filebeat
+    #     - osquery
+    #     - wazuh-manager
+    #     - wazuh-agent
+    #     - falco
 
     - name: Install incident_response_and_forensics_tools
       apt:
@@ -140,8 +138,8 @@
       with_items:
         - sleuthkit
         - autopsy
-        - the_silver_searcher
-        - timesketch
+        # - the_silver_searcher
+        # - timesketch
 
     - name: Install defensive_hardening_tools
       apt:
@@ -161,14 +159,6 @@
         - nmap
         - iptables
         - fail2ban
-
-    - name: Install security_information_and_event_management (SIEM)
-      apt:
-        name: "{{ item }}"
-        state: present
-      with_items:
-        - ossec-hids
-        - opendistroforelasticsearch
 
     - name: Install updating_tools_and_dependencies
       shell: |
