@@ -1,2 +1,0 @@
-[red_team]
-192.168.56.101 ansible_user=kali ansible_password=kali

@@ -93,7 +93,7 @@ echo "[blue_team]" >> $(pwd)/ansible/inventory.ini
 echo "${blue_team_ip} ansible_user=ubuntu ansible_ssh_private_key_file=$(pwd)/cyberrange-key.pem" >> $(pwd)/ansible/inventory.ini
 
 # Disable host key checking
-# export ANSIBLE_HOST_KEY_CHECKING=False
+export ANSIBLE_HOST_KEY_CHECKING=False
 
 # Exécution Ansible playbooks
 echo "Executing Ansible playbooks..."

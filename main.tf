@@ -294,17 +294,17 @@ resource "aws_ec2_traffic_mirror_filter_rule" "outbound" {
 }
 
 # Traffic mirror session
-resource "aws_ec2_traffic_mirror_session" "target_session" {
-  description              = "Traffic mirror session for target instance"
-  network_interface_id     = aws_instance.target.primary_network_interface_id
-  traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.target_traffic.id
-  traffic_mirror_target_id = aws_ec2_traffic_mirror_target.blue_team_target.id
-  session_number          = 1
+# resource "aws_ec2_traffic_mirror_session" "target_session" {
+#   description              = "Traffic mirror session for target instance"
+#   network_interface_id     = aws_instance.target.primary_network_interface_id
+#   traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.target_traffic.id
+#   traffic_mirror_target_id = aws_ec2_traffic_mirror_target.blue_team_target.id
+#   session_number          = 1
 
-  tags = merge(var.common_tags, {
-    Name = "${var.project_name}-mirror-session"
-  })
-}
+#   tags = merge(var.common_tags, {
+#     Name = "${var.project_name}-mirror-session"
+#   })
+# }
 
 # Outputs
 output "vpc_id" {
