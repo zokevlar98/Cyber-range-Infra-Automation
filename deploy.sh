@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Update and upgrade the system
-sudo apt update && sudo apt upgrade -y
+# sudo apt update && sudo apt upgrade -y
 
 # check jq is installed or not
 if ! command -v jq &> /dev/null; then
@@ -58,40 +58,40 @@ fi
 # Verify OpenSSH client installation
 ssh -V
 
-Initialize and apply Terraform configuration
-echo "Terraform validation..."
-terraform validate
-echo "Initializing and applying Terraform configuration..."
-terraform init
-echo "Terraform plan..."
-terraform plan -out=tfplan
-echo "Applying Terraform configuration..."
-echo "Constructing the infrastructure..."
-terraform apply tfplan
+# Initialize and apply Terraform configuration
+# echo "Terraform validation..."
+# terraform validate
+# echo "Initializing and applying Terraform configuration..."
+# terraform init
+# echo "Terraform plan..."
+# terraform plan -out=tfplan
+# echo "Applying Terraform configuration..."
+# echo "Constructing the infrastructure..."
+# terraform apply tfplan
 
 # get data to inventory.ini
 # terraform output -json instance_public_ip | jq -r '.red_team | "red_team ansible_host=" + . + " ansible_user=ubuntu"' > $(pwd)/ansible/.env 
 
 # For red_team
-echo "Getting data to inventory.ini..."
-echo "Red_team ip public adress..."
-terraform output -json instance_public_ip | jq -r '.red_team' > $(pwd)/ansible/.env 
-red_team_ip=$(cat $(pwd)/ansible/.env)
-echo "[red_team]" > $(pwd)/ansible/inventory.ini
-echo "${red_team_ip} ansible_user=ubuntu ansible_ssh_private_key_file=$(pwd)/cyberrange-key.pem" >> $(pwd)/ansible/inventory.ini
+# echo "Getting data to inventory.ini..."
+# echo "Red_team ip public adress..."
+# terraform output -json instance_public_ip | jq -r '.red_team' > $(pwd)/ansible/.env 
+# red_team_ip=$(cat $(pwd)/ansible/.env)
+# echo "[red_team]" > $(pwd)/ansible/inventory.ini
+# echo "${red_team_ip} ansible_user=ubuntu ansible_ssh_private_key_file=$(pwd)/cyberrange-key.pem" >> $(pwd)/ansible/inventory.ini
 
 # For blue_team
 
-# echo "Bleu_team ip public adress..."
-# terraform output -json instance_public_ip | jq -r '.bleu_team' > $(pwd)/ansible/.env 
-# bleu_team_ip=$(cat $(pwd)/ansible/.env)
-# echo "[bleu_team]" >> $(pwd)/ansible/inventory.ini
-# echo "${bleu_team_ip} ansible_user=ubuntu ansible_ssh_private_key_file=$(pwd)/cyberrange-key.pem" >> $(pwd)/ansible/inventory.ini
+echo "blue_team ip public adress..."
+terraform output -json instance_public_ip | jq -r '.blue_team' > $(pwd)/ansible/.env 
+blue_team_ip=$(cat $(pwd)/ansible/.env)
+echo "[blue_team]" > $(pwd)/ansible/inventory.ini
+echo "${blue_team_ip} ansible_user=ubuntu ansible_ssh_private_key_file=$(pwd)/cyberrange-key.pem" >> $(pwd)/ansible/inventory.ini
 
 # Exécution Ansible playbooks
 echo "Executing Ansible playbooks..."
-# sudo ansible-playbook -i $(pwd)/ansible/inventory.ini  $(pwd)/ansible/red_team_playbook.yml -l red_team
-# sudo ansible-playbook -i $(pwd)/ansible/inventory.ini $(pwd)/ansible/blue_team_playbook.yml -l blue_team
+# sudo ansible-playbook -i $(pwd)/ansible/inventory.ini  $(pwd)/ansible/red_team_playbook.yml -l red_team # -y
+sudo ansible-playbook -i $(pwd)/ansible/inventory.ini $(pwd)/ansible/blue_team_playbook.yml -l blue_team
 
 # # (Optionnel) Démarrage de Vagrant
 # vagrant up

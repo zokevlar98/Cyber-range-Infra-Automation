@@ -1,0 +1,175 @@
+---
+- hosts: blue_team
+  become: true
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+    - name: Install system dependencies
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - build-essential
+        - python3-pip
+        - python3-dev
+        - git
+        - curl
+        - wget
+        - tar
+        - python3-venv
+        - libssl-dev
+        - libffi-dev
+        - openssh-client
+        - openssh-server
+        - openssl
+        - jq
+        - ufw
+        - auditd
+
+# - name: Install Node.js and npm
+    #   shell: |
+    #     curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+    #     sudo apt-get install -y nodejs
+
+
+    - name: Install Python packages for analysis
+      pip:
+        name:
+          - pyshark      # Python packet analysis library
+          - scapy       # Packet manipulation library
+        state: present
+
+    - name: Create capture directory
+      file:
+        path: /opt/capture
+        state: directory
+        mode: '0755'
+
+    # Set up continuous capture service
+    - name: Install capture service
+      copy:
+        dest: /etc/systemd/system/traffic-capture.service
+        content: |
+          [Unit]
+          Description=Traffic Mirror Capture Service
+          After=network.target
+
+          [Service]
+          Type=simple
+          ExecStart=/usr/bin/tcpdump -i any -w /opt/capture/mirror_%Y%m%d_%H%M%S.pcap udp port 4789
+          Restart=always
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Configure log rotation for captures
+      copy:
+        dest: /etc/logrotate.d/packet-capture
+        content: |
+          /opt/capture/*.pcap {
+            daily
+            rotate 7
+            compress
+            missingok
+            notifempty
+            create 0644 root root
+          }
+
+    - name: Create analysis script
+      copy:
+        dest: /opt/capture/analyze_traffic.py
+        mode: '0755'
+        content: |
+          #!/usr/bin/env python3
+          import pyshark
+          import sys
+          from datetime import datetime
+          
+          def analyze_vxlan_traffic(pcap_file):
+              print(f"Analyzing {pcap_file}")
+              cap = pyshark.FileCapture(pcap_file)
+              
+              for packet in cap:
+                  try:
+                      if hasattr(packet, 'vxlan'):
+                          print(f"VXLAN Packet - Inner: {packet.highest_layer}")
+                  except Exception as e:
+                      pass
+              
+          if _name_ == "_main_":
+              if len(sys.argv) > 1:
+                  analyze_vxlan_traffic(sys.argv[1])
+
+    # - name: Start and enable capture service
+    #   systemd:
+    #     name: traffic-capture
+    #     state: started
+    #     enabled: yes
+    #     daemon_reload: yes
+
+    - name: Install network_monitoring_tools
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - netdata
+        - ntopng
+        - tcpdump
+        - wireshark
+        - snort
+
+    - name: Install log_management_and_analysis_tools
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - rsyslog
+        - graylog-server # here probleme
+        - elasticsearch
+        - filebeat
+        - osquery
+        - wazuh-manager
+        - wazuh-agent
+        - falco
+
+    - name: Install incident_response_and_forensics_tools
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - sleuthkit
+        - autopsy
+        - the_silver_searcher
+        - timesketch
+
+    - name: Install defensive_hardening_tools
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - apparmor
+        - fail2ban
+        - lynis
+
+    - name: Install firewall_and_network_security_tools
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - ufw
+        - nmap
+        - iptables
+        - fail2ban
+
+    - name: Install security_information_and_event_management (SIEM)
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - ossec-hids
+        - opendistroforelasticsearch
+
+    - name: Install updating_tools_and_dependencies
+      shell: |
+        apt update && apt upgrade -y
