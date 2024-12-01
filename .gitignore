@@ -42,4 +42,3 @@ override.tf.json
 terraform.rc
 
 .aws/
-script.sh
