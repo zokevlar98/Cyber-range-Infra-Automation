@@ -8,6 +8,19 @@ if ! command -v jq &> /dev/null; then
     sudo apt install -y jq
 fi
 
+if command -v wget &> /dev/null; then
+    echo "wget is already installed"
+else
+    sudo apt install -y wget
+fi
+
+if command -v unzip &> /dev/null; then
+    echo "unzip is already installed"
+else
+    sudo apt install -y unzip
+fi
+
+
 # Check if Terraform is installed
 if command -v terraform &> /dev/null; then
     echo "Terraform is already installed"
