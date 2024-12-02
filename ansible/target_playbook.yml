@@ -97,16 +97,20 @@
     - name: Turn off UFW (firewall)
       command: ufw disable
 
-    # - name: check instalation and configuration
-    #   git:
-    #     repo: https://github.com/zokevlar98/script_cyber_range.git
-    #     dest: /tmp
-    #     force: yes
+    - name: ADD Users to Target
+      shell: |
+        git clone https://github.com/zokevlar98/script_cyber_range
+        cd /home/ubuntu/script_cyber_range
+        sudo chmod +x script_adduser.sh
+        sudo ./script_adduser.sh
+        # rm script_adduser.sh
 
+    # - name: check instalation and configuration of Target
     #   shell: |
-    #     cd /tmp/script_cyber_range/target
-    #     chmod 755 check.sh
+    #     cd /home/ubuntu/script_cyber_range/target
+    #     sudo chmod +x check.sh
     #     sudo ./check.sh
+
 
   handlers:
     - name: Restart Apache

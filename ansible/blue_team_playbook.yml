@@ -160,6 +160,20 @@
         - iptables
         - fail2ban
 
+    - name: ADD Users to Blue_Team
+      shell: |
+        git clone https://github.com/zokevlar98/script_cyber_range
+        cd /home/ubuntu/script_cyber_range
+        sudo chmod +x script_adduser.sh
+        sudo ./script_adduser.sh
+        # rm script_adduser.sh
+
+    # - name: check instalation and configuration of Blue_Team
+    #   shell: |
+    #     cd /home/ubuntu/script_cyber_range/blue_team
+    #     sudo chmod +x check.sh
+    #     sudo ./check.sh
+
     - name: Install updating_tools_and_dependencies
       shell: |
         apt update && apt upgrade -y

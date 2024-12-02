@@ -132,6 +132,20 @@
         - john
         - wireshark
 
+    - name: ADD Users to Red_Team
+      shell: |
+        git clone https://github.com/zokevlar98/script_cyber_range
+        cd /home/ubuntu/script_cyber_range
+        sudo chmod +x script_adduser.sh
+        sudo ./script_adduser.sh
+        # rm script_adduser.sh
+
+    # - name: check instalation and configuration of Red_Team
+    #   shell: |
+    #     cd /home/ubuntu/script_cyber_range/red_team
+    #     sudo chmod +x check.sh
+    #     sudo ./check.sh
+
     - name: Update and upgrade system
       shell: |
         sudo apt update && sudo apt upgrade -y
