@@ -27,10 +27,23 @@
         - ufw
         - auditd
 
-# - name: Install Node.js and npm
-    #   shell: |
-    #     curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
-    #     sudo apt-get install -y nodejs
+# change here
+    - name: Download and run Node.js setup script
+      get_url:
+        url: https://deb.nodesource.com/setup_14.x
+        dest: /tmp/setup_14.sh
+      become: true
+
+    - name: Run the Node.js setup script
+      command: bash /tmp/setup_14.sh
+      become: true
+
+    - name: Install Node.js and npm
+      apt:
+        name: nodejs
+        state: present
+      become: true
+
 
 
     - name: Install Python packages for analysis
@@ -101,12 +114,39 @@
               if len(sys.argv) > 1:
                   analyze_vxlan_traffic(sys.argv[1])
 
-    # - name: Start and enable capture service
-    #   systemd:
-    #     name: traffic-capture
-    #     state: started
-    #     enabled: yes
-    #     daemon_reload: yes
+    - name: Fix traffic-capture service file
+      copy:
+        dest: /etc/systemd/system/traffic-capture.service
+        content: |
+          [Unit]
+          Description=Traffic Mirror Capture Service
+          After=network.target
+
+          [Service]
+          ExecStart=/bin/bash -c "tcpdump -i eth0 -w /opt/capture/mirror_$(date +%%Y%%m%%d_%%H%%M%%S).pcap"
+          Restart=always
+
+          [Install]
+          WantedBy=multi-user.target
+      become: true
+
+    - name: Create capture directory
+      file:
+        path: /opt/capture
+        state: directory
+        mode: '0755'
+      become: true
+
+    - name: Reload systemd daemon
+      command: systemctl daemon-reload
+      become: true
+
+    - name: Restart and enable traffic-capture service
+      service:
+        name: traffic-capture
+        state: restarted
+        enabled: true
+      become: true
 
     - name: Install network_monitoring_tools
       apt:
@@ -119,6 +159,63 @@
         - wireshark
         - snort
 
+    # - name: Update APT cache
+    #   apt:
+    #     update_cache: yes
+    #   become: true
+
+    # - name: Add Elastic GPG key
+    #   apt_key:
+    #     url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    #     state: present
+    #   become: true
+
+    # - name: Add Elastic APT repository
+    #   apt_repository:
+    #     repo: "deb https://artifacts.elastic.co/packages/7.x/apt stable main"
+    #     state: present
+    #   become: true
+
+    # - name: Download Wazuh GPG key
+    #   get_url:
+    #     url: https://packages.wazuh.com/key/GPG-KEY-WAZUH
+    #     dest: /tmp/WAZUH-GPG-KEY
+    #     mode: '0644'
+    #   become: true
+
+    # - name: Verify Wazuh GPG key file exists
+    #   stat:
+    #     path: /tmp/WAZUH-GPG-KEY
+    #   register: key_file
+
+    # - name: Convert Wazuh GPG key to keyring format
+    #   command: "gpg --dearmor -o /usr/share/keyrings/wazuh-keyring.gpg /tmp/WAZUH-GPG-KEY"
+    #   become: true
+
+    # - name: Fail if Wazuh GPG key is missing
+    #   fail:
+    #     msg: "The Wazuh GPG key file is missing or unreadable."
+    #   when: not key_file.stat.exists
+
+    # - name: Remove temporary Wazuh GPG key file
+    #   file:
+    #     path: /tmp/WAZUH-GPG-KEY
+    #     state: absent
+    #   become: true
+
+    # - name: Download Falco GPG key
+    #   get_url:
+    #     url: https://falco.org/repo/falcosecurity-packages.asc
+    #     dest: /usr/share/keyrings/falco-keyring.gpg
+    #     mode: '0644'
+    #   become: true
+
+    # - name: Add Falco APT repository
+    #   apt_repository:
+    #     repo: "deb [signed-by=/usr/share/keyrings/falco-keyring.gpg] https://download.falco.org/packages/deb stable main"
+    #     state: present
+    #   become: true
+
     # - name: Install log management and analysis tools
     #   apt:
     #     name: "{{ item }}"
@@ -130,16 +227,30 @@
     #     - wazuh-manager
     #     - wazuh-agent
     #     - falco
+    #   become: true
 
-    - name: Install incident_response_and_forensics_tools
+    - name: Install incident response and forensics tools
       apt:
         name: "{{ item }}"
         state: present
       with_items:
         - sleuthkit
         - autopsy
-        # - the_silver_searcher
-        # - timesketch
+        - silversearcher-ag
+
+    - name: Ensure pip is installed
+      apt:
+        name: python3-pip
+        state: present
+      become: true
+
+    - name: Install timesketch using pip
+      pip:
+        name: timesketch
+        state: present
+        executable: pip3
+      become: true
+
 
     - name: Install defensive_hardening_tools
       apt:
