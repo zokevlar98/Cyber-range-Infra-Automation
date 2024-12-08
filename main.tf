@@ -1,7 +1,3 @@
-provider "aws" {
-  region = var.aws_region
-}
-
 # Data source for AZs
 data "aws_availability_zones" "available" {
   state = "available"
@@ -80,7 +76,7 @@ resource "aws_security_group" "instances" {
     to_port     = 0
     protocol    = "-1"
     self        = true
-    description = "Allow all internal traffic" 
+    description = "Allow all internal traffic"
     #VXLAN traffic (UDP 4789) will be allowed by the "Allow all internal traffic" rule.
   }
 
@@ -246,7 +242,7 @@ resource "aws_lb_target_group_attachment" "target" {
 resource "aws_ec2_traffic_mirror_target" "blue_team_target" {
   description          = "Mirror target for blue team analysis"
   network_interface_id = aws_instance.blue_team.primary_network_interface_id
-  
+
   tags = merge(var.common_tags, {
     Name = "${var.project_name}-mirror-target"
   })
@@ -265,35 +261,96 @@ resource "aws_ec2_traffic_mirror_filter" "target_traffic" {
 resource "aws_ec2_traffic_mirror_filter_rule" "inbound" {
   description              = "Accept inbound traffic"
   traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.target_traffic.id
-  rule_number             = 1
-  rule_action             = "accept"
-  traffic_direction       = "ingress"
-  destination_cidr_block  = "0.0.0.0/0"
-  source_cidr_block      = "0.0.0.0/0"
+  rule_number              = 1
+  rule_action              = "accept"
+  traffic_direction        = "ingress"
+  destination_cidr_block   = "0.0.0.0/0"
+  source_cidr_block        = "0.0.0.0/0"
 }
 
 # Rules for outbound traffic
 resource "aws_ec2_traffic_mirror_filter_rule" "outbound" {
   description              = "Accept outbound traffic"
   traffic_mirror_filter_id = aws_ec2_traffic_mirror_filter.target_traffic.id
-  rule_number             = 2
-  rule_action             = "accept"
-  traffic_direction       = "egress"
-  destination_cidr_block  = "0.0.0.0/0"
-  source_cidr_block      = "0.0.0.0/0"
+  rule_number              = 2
+  rule_action              = "accept"
+  traffic_direction        = "egress"
+  destination_cidr_block   = "0.0.0.0/0"
+  source_cidr_block        = "0.0.0.0/0"
 }
 
-# Outputs
-output "vpc_id" {
-  description = "ID of the created VPC"
-  value       = aws_vpc.main.id
-}
+# Start Point User
+# resource "aws_iam_user" "pentester_user" {
+#   name = "pentester"
+# }
 
-output "instance_public_ip" {
-  description = "Public IP of the instance"
-  value = {
-    red_team  = aws_instance.red_team.public_ip
-    blue_team = aws_instance.blue_team.public_ip
-    target    = aws_instance.target.public_ip
-  }
-}
+# Create access key for pentester user
+# resource "aws_iam_access_key" "pentester" {
+#   user = aws_iam_user.pentester_user.name
+# }
+
+# Policy to list iam roles and invoke lambda function
+# resource "aws_iam_policy" "pentester_policy" {
+#   name        = "pentester-limited-policy"
+#   description = "Minimal permissions for pentester user."
+#   policy = jsonencode({
+#     Version = "2012-10-17",
+#     Statement = [
+#       {
+#         Effect   = "Allow",
+#         Action   = ["iam:ListRoles", "lambda:InvokeFunction"],
+#         Resource = "*"
+#       }
+#     ]
+#   })
+# }
+
+# Attach the policy to the user
+# resource "aws_iam_user_policy_attachment" "pentester_policy_attachment" {
+#   user       = aws_iam_user.pentester_user.name
+#   policy_arn = aws_iam_policy.pentester_policy.arn
+# }
+
+# resource "aws_iam_role" "vulnerable_lambda_role" {
+#   name = "vulnerable-lambda-role"
+#   assume_role_policy = jsonencode({
+#     Version = "2012-10-17",
+#     Statement = [
+#       {
+#         Effect = "Allow",
+#         Principal = {
+#           Service = "lambda.amazonaws.com"
+#         },
+#         Action = "sts:AssumeRole"
+#       }
+#     ]
+#   })
+# }
+
+# resource "aws_iam_policy" "vulnerable_lambda_policy" {
+#   name        = "vulnerable-lambda-policy"
+#   description = "over-permissive policy for lambda"
+#   policy = jsonencode({
+#     Version = "2012-10-17",
+#     Statement = [
+#       {
+#         Effect   = "Allow",
+#         Action   = ["iam:PassRole", "secretsmanager:*"],
+#         Resource = "*"
+#       },
+#       {
+#         Effect   = "Allow",
+#         Action   = "iam:ListRoles",
+#         Resource = "*"
+#       }
+#     ]
+#   })
+# }
+
+# resource "local_file" "pentester_user_credentials" {
+#   content  = <<EOT
+# access_key : ${aws_iam_access_key.pentester.id}
+# secret_key : ${aws_iam_access_key.pentester.secret}
+#   EOT
+#   filename = "${path.module}/pentester_user_credentials.json"
+# }
