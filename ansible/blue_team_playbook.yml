@@ -244,12 +244,12 @@
         state: present
       become: true
 
-    - name: Install timesketch using pip
-      pip:
-        name: timesketch
-        state: present
-        executable: pip3
-      become: true
+    # - name: Install timesketch using pip
+    #   pip:
+    #     name: timesketch
+    #     state: present
+    #     executable: pip3
+    #   become: true
 
 
     - name: Install defensive_hardening_tools

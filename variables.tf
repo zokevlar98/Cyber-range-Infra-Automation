@@ -92,14 +92,31 @@ variable "common_tags" {
   }
 }
 
-# variable "red_team_playbook" {
-#   description = "Path to the Red Team playbook"
-#   type        = string
-#   default     = "/mnt/c/Users/zokevlar/Desktop/Cyber-range-Infra-Automation/ansible/red_team_playbook.yml"
+# # vunerable_lambda
+variable "profile_pentester" {
+  description = "The AWS profile to use."
+  type        = string
+}
 
-#   validation {
-#     condition     = can(file(var.red_team_playbook))
-#     error_message = "File not found."
-#   }
+variable "crid" {
+  description = "CRID variable for unique naming."
+  type        = string
+}
 
-# }
+variable "cr_whitelist" {
+  description = "User's public IP address(es)."
+  # type        = list(string)
+  type = string
+}
+
+variable "stack-name" {
+  description = "Name of the stack."
+  default     = "CayberRange_Stack"
+  type        = string
+}
+
+variable "scenario-name" {
+  description = "Name of the scenario."
+  default     = "vulnerable-lambda"
+  type        = string
+}

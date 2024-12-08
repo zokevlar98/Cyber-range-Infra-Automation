@@ -42,3 +42,5 @@ override.tf.json
 terraform.rc
 
 .aws/
+*.json
+/lambda_source_code/archives/*
