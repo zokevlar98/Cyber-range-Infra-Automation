@@ -21,7 +21,8 @@ resource "aws_iam_user_policy" "pentester_policy" {
         Sid      = ""
         Effect   = "Allow"
         Action   = "sts:AssumeRole"
-        Resource = "arn:aws:iam::940877411605:role/cr-lambda-invoker*"
+        # Resource = "arn:aws:iam::940877411605:role/cr-lambda-invoker*"
+        Resource = "*"
       },
       {
         Sid    = ""
@@ -84,4 +85,9 @@ resource "aws_iam_policy" "cr-lambda-invoker" {
       }
     ]
   })
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_invoker_policy_attachment" {
+  role       = aws_iam_role.cr-lambda-invoker.name
+  policy_arn = aws_iam_policy.cr-lambda-invoker.arn
 }

@@ -1,6 +1,6 @@
 # IAM Role for policy_applier_lambda1
-resource "aws_iam_role" "policy_applier_lambda1" {
-  name = "${var.crid}-policy_applier_lambda1"
+resource "aws_iam_role" "applier_lambda1" {
+  name = "${var.crid}-applier_lambda1"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -18,9 +18,9 @@ resource "aws_iam_role" "policy_applier_lambda1" {
 }
 
 # Policy for policy_applier_lambda1
-resource "aws_iam_role_policy" "policy_applier_lambda1_policy" {
+resource "aws_iam_role_policy" "policy_applier_lambda1" {
   name = "policy_applier_lambda1"
-  role = aws_iam_role.policy_applier_lambda1.id
+  role = aws_iam_role.applier_lambda1.id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -63,9 +63,19 @@ resource "aws_lambda_function" "policy_applier_lambda1" {
 
   filename         = data.archive_file.policy_applier_lambda1_zip.output_path
   function_name    = "${var.crid}-policy_applier_lambda1"
-  role             = aws_iam_role.policy_applier_lambda1.arn
+  role             = aws_iam_role.applier_lambda1.arn
   handler          = "main.handler"
   description      = "This function will apply a managed policy to the user of your choice, so long as the database says that it's okay..."
   source_code_hash = filebase64sha256(data.archive_file.policy_applier_lambda1_zip.output_path)
   runtime          = "python3.9"
+
+  vpc_config {
+    subnet_ids         = [aws_subnet.lambda_private.id]
+    security_group_ids = [aws_security_group.lambda_instances.id]
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_vpc_access" {
+  role       = aws_iam_role.applier_lambda1.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
