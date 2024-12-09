@@ -120,3 +120,31 @@ variable "scenario-name" {
   default     = "vulnerable-lambda"
   type        = string
 }
+
+variable "lambda_name" {
+  description = "Name of the lambda function."
+  type        = string
+  default     = "lambda_vulnerable"
+}
+
+variable "lambda_vpc_cidr" {
+  description = "CIDR block for Lambda VPC"
+  type        = string
+  default     = "10.0.0.0/16"
+
+  validation {
+    condition     = can(cidrhost(var.lambda_vpc_cidr, 0))
+    error_message = "Must be a valid IPv4 CIDR block."
+  }
+}
+
+variable "lambda_subnet_cidr" {
+  description = "CIDR block for Lambda subnet"
+  type        = string
+  default     = "10.0.1.0/24"
+
+  validation {
+    condition     = can(cidrhost(var.lambda_subnet_cidr, 0))
+    error_message = "Must be a valid IPv4 CIDR block."
+  }
+}
