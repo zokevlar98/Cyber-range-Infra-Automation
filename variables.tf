@@ -69,9 +69,9 @@ variable "instance_types" {
   description = "Instance types for different purposes"
   type        = map(string)
   default = {
-    red_team  = "t2.micro"
-    blue_team = "t2.micro"
-    target    = "t2.micro"
+    red_team  = "t2.medium"
+    blue_team = "t2.medium"
+    target    = "t2.medium"
   }
 
   validation {
@@ -96,18 +96,20 @@ variable "common_tags" {
 variable "profile_pentester" {
   description = "The AWS profile to use."
   type        = string
+  default     = "pentester"
 }
 
 variable "crid" {
   description = "CRID variable for unique naming."
   type        = string
+  default     = "7"
 }
 
-variable "cr_whitelist" {
-  description = "User's public IP address(es)."
-  # type        = list(string)
-  type = string
-}
+# variable "cr_whitelist" {
+#   description = "User's public IP address(es)."
+#   # type        = list(string)
+#   type = string
+# }
 
 variable "stack-name" {
   description = "Name of the stack."

@@ -94,8 +94,6 @@ echo "Applying Terraform configuration..."
 echo "Constructing the infrastructure..."
 sudo  terraform apply tfplan
 
-# get data to inventory.ini
-# terraform output -json instance_public_ip | jq -r '.red_team | "red_team ansible_host=" + . + " ansible_user=ubuntu"' > $(pwd)/ansible/.env 
 
 # For red_team
 echo "Getting data to inventory.ini..."
@@ -122,8 +120,6 @@ sudo $(pwd)/scripts/ssh.sh
 echo "[target]" >> $(pwd)/ansible/inventory.ini
 echo "${target_ip} ansible_user=ubuntu ansible_ssh_private_key_file=$(pwd)/cyberrange-key.pem" >> $(pwd)/ansible/inventory.ini
 
-# Disable host key checking
-# export ANSIBLE_HOST_KEY_CHECKING=False
 
 # Exécution Ansible playbooks
 echo "Executing Ansible playbooks..."
@@ -131,5 +127,5 @@ sudo ansible-playbook -i $(pwd)/ansible/inventory.ini  $(pwd)/ansible/red_team_p
 sudo ansible-playbook -i $(pwd)/ansible/inventory.ini $(pwd)/ansible/blue_team_playbook.yml -l blue_team
 sudo ansible-playbook -i $(pwd)/ansible/inventory.ini $(pwd)/ansible/target_playbook.yml -l target
 
-# # (Optionnel) Démarrage de Vagrant
+# # (Optionnel) 
 # vagrant up

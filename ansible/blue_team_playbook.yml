@@ -26,6 +26,7 @@
         - jq
         - ufw
         - auditd
+        - net-tools
 
 # change here
     - name: Download and run Node.js setup script
