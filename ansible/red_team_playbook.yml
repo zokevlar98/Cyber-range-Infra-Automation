@@ -25,10 +25,22 @@
         - openssl
         - jq
 
-    # - name: Install Node.js and npm
-    #   shell: |
-    #     curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
-    #     sudo apt-get install -y nodejs
+    - name: Download and run Node.js setup script
+      get_url:
+        url: https://deb.nodesource.com/setup_14.x
+        dest: /tmp/setup_14.sh
+      become: true
+
+    - name: Run the Node.js setup script
+      command: bash /tmp/setup_14.sh
+      become: true
+
+    - name: Install Node.js and npm
+      apt:
+        name: nodejs
+        state: present
+      become: true
+
 
     - name: Install networking and reconnaissance tools
       apt:
@@ -40,6 +52,7 @@
         - nikto
         - gobuster
         - recon-ng
+        - net-tools
 
     - name: Install Amass
       shell: |
@@ -131,7 +144,7 @@
         - hashcat
         - john
         - wireshark
-
+    
     - name: ADD Users to Red_Team
       shell: |
         git clone https://github.com/zokevlar98/script_cyber_range
@@ -139,6 +152,14 @@
         sudo chmod +x script_adduser.sh
         sudo ./script_adduser.sh
         # rm script_adduser.sh
+  
+    - name: Install atomic-red-team 
+      shell: |
+        git clone https://github.com/zokevlar98/Web_Terminal
+        cd /home/ubuntu/Web_Terminal
+        sudo git pull --force
+        sudo chmod +x script_atomic.sh
+        sudo ./script_atomic.sh
 
     # - name: check instalation and configuration of Red_Team
     #   shell: |

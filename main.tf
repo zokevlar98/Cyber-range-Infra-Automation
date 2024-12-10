@@ -77,7 +77,6 @@ resource "aws_security_group" "instances" {
     protocol    = "-1"
     self        = true
     description = "Allow all internal traffic"
-    #VXLAN traffic (UDP 4789) will be allowed by the "Allow all internal traffic" rule.
   }
 
   egress {
@@ -278,79 +277,3 @@ resource "aws_ec2_traffic_mirror_filter_rule" "outbound" {
   destination_cidr_block   = "0.0.0.0/0"
   source_cidr_block        = "0.0.0.0/0"
 }
-
-# Start Point User
-# resource "aws_iam_user" "pentester_user" {
-#   name = "pentester"
-# }
-
-# Create access key for pentester user
-# resource "aws_iam_access_key" "pentester" {
-#   user = aws_iam_user.pentester_user.name
-# }
-
-# Policy to list iam roles and invoke lambda function
-# resource "aws_iam_policy" "pentester_policy" {
-#   name        = "pentester-limited-policy"
-#   description = "Minimal permissions for pentester user."
-#   policy = jsonencode({
-#     Version = "2012-10-17",
-#     Statement = [
-#       {
-#         Effect   = "Allow",
-#         Action   = ["iam:ListRoles", "lambda:InvokeFunction"],
-#         Resource = "*"
-#       }
-#     ]
-#   })
-# }
-
-# Attach the policy to the user
-# resource "aws_iam_user_policy_attachment" "pentester_policy_attachment" {
-#   user       = aws_iam_user.pentester_user.name
-#   policy_arn = aws_iam_policy.pentester_policy.arn
-# }
-
-# resource "aws_iam_role" "vulnerable_lambda_role" {
-#   name = "vulnerable-lambda-role"
-#   assume_role_policy = jsonencode({
-#     Version = "2012-10-17",
-#     Statement = [
-#       {
-#         Effect = "Allow",
-#         Principal = {
-#           Service = "lambda.amazonaws.com"
-#         },
-#         Action = "sts:AssumeRole"
-#       }
-#     ]
-#   })
-# }
-
-# resource "aws_iam_policy" "vulnerable_lambda_policy" {
-#   name        = "vulnerable-lambda-policy"
-#   description = "over-permissive policy for lambda"
-#   policy = jsonencode({
-#     Version = "2012-10-17",
-#     Statement = [
-#       {
-#         Effect   = "Allow",
-#         Action   = ["iam:PassRole", "secretsmanager:*"],
-#         Resource = "*"
-#       },
-#       {
-#         Effect   = "Allow",
-#         Action   = "iam:ListRoles",
-#         Resource = "*"
-#       }
-#     ]
-#   })
-# }
-
-# resource "local_file" "pentester_user_credentials" {
-#   content  = <<EOT
-# access_key : ${aws_iam_access_key.pentester.id}
-# secret_key : ${aws_iam_access_key.pentester.secret}
-#   EOT
-#   filename = "${path.module}/pentester_user_credentials.json"
-# }

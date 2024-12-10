@@ -13,7 +13,6 @@ output "instance_public_ip" {
   }
 }
 
-# New outputs for Lambda and VPC configuration
 output "lambda_function_details" {
   description = "Details of the vulnerable Lambda function"
   value = {
@@ -30,11 +29,6 @@ output "lambda_function_details" {
     }
   }
 }
-
-# output "vpc_peering_connection_id" {
-#   description = "ID of VPC peering connection between main and vulnerable VPCs"
-#   value       = aws_vpc_peering_connection.main_to_vulnerable.id
-# }
 
 output "lambda_invoke_url" {
   description = "URL to invoke the Lambda function (via VPC endpoint)"
